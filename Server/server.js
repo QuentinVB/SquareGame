@@ -9,6 +9,10 @@ var express = require('express'),
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*"); 
+  next();
+});
 
 
 var routes = require('./api/routes/Routes'); //importing route
@@ -21,4 +25,4 @@ app.use(function(req, res) {
 app.listen(port);
 
 
-console.log('todo list RESTful API server started on: ' + port);
+console.log('square game RESTful API server started on: ' + port);
