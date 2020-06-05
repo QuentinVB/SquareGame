@@ -1,11 +1,13 @@
 'use strict';
 
+const DEFAULTGRIDSIZE = 5;
+
 //TODO : a game state with all the stuff !
 
 var Square = require('./Square'); //created model loading here
 
 class Game {
-    constructor(gridSize) {
+    constructor(gridSize = DEFAULTGRIDSIZE) {
       this.gridSize = gridSize;
     }
     /*

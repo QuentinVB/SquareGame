@@ -21,7 +21,7 @@ exports.joinNewGame = function(req, res) {
 
     let game ;
     //TODO :retrieve in a game collection, if any game has 1 opponent waiting, else create a new game
-    if(!activegame) activegame=new Game(3);
+    if(!activegame) activegame=new Game();
     //TODO : create correctly the game
     
     game= activegame;
