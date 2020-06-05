@@ -2,10 +2,9 @@
 module.exports = function(app) {
   var gamecontroller = require('../controllers/Controller');
 
-  // todoList Routes
+//Routes for testing
   app.route('/grid')
     .get(gamecontroller.getgrid);
-  
   app.route('/ping')
     .get((req, res)=> {
       res.json({ping : "pong", methode : req.method})}
@@ -14,11 +13,23 @@ module.exports = function(app) {
     .get((req, res)=> {
       res.json({timestamp : (new Date(Date.now())).toLocaleString('fr-FR'), methode : req.method})}
       );
-    //.post(gamecontroller.create_a_task);
+  
+//real routes
 
-/*
-  app.route('/tasks/:taskId')
-    .get(gamecontroller.read_a_task)
-    .put(gamecontroller.update_a_task)
-    .delete(gamecontroller.delete_a_task);*/
+  /*join a new game, 
+  passing username in parameter, 
+  create a new game state if not exist, else join an existing one 
+  then return the game state.*/
+  app.route('/new/:userName')
+    .post(gamecontroller.joinNewGame);
+
+  /*get the current game state, 
+  passing game id in parameter */
+  app.route('/:gameId')
+    .get(gamecontroller.getgame);
+
+  /*post the clicked edge, 
+  passing game id, username and edge id in parameter */
+  app.route('/:gameId/:userName/:edgeId')
+    .post(gamecontroller.playTurn);
 };
