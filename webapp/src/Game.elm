@@ -1,4 +1,4 @@
-module JsonCall exposing (main)
+module Game exposing (main)
 
 import Browser
 import Http
@@ -31,6 +31,7 @@ type Model
   | Loading
   | Success String
 
+-- INIT
 
 init : () -> (Model, Cmd Msg)
 init _ =
@@ -39,8 +40,6 @@ init _ =
 
 
 -- UPDATE
-
-
 type Msg
   = RefreshTime
   | GotTime (Result Http.Error String)
@@ -56,7 +55,6 @@ update msg model =
       case result of
         Ok timestamp ->
             (Success timestamp, Cmd.none)
-
         Err _ ->
           (Failure "prout", Cmd.none)
 
@@ -85,9 +83,9 @@ view model =
 viewTime : Model -> Html Msg
 viewTime model =
   case model of
-    Failure foo ->
+    Failure errorMessage ->
       div []
-        [ text ("Nope !" ++ foo)
+        [ text ("Nope !" ++ errorMessage)
         , button [ onClick RefreshTime ] [ text "Try Again!" ]
         ]
 
@@ -106,6 +104,14 @@ viewTime model =
 
 getTimeStamp : Cmd Msg
 getTimeStamp =
+  Http.get
+    { url = "http://localhost:3000/time"
+    , expect = Http.expectJson GotTime timeDecoder
+    }
+
+{-
+getTimeStamp : Cmd Msg
+getTimeStamp =
     let
         headers =
             [ 
@@ -120,7 +126,7 @@ getTimeStamp =
         , timeout = Nothing
         , tracker = Nothing
         }  
-
+-}
 
 timeDecoder : Decoder String
 timeDecoder =

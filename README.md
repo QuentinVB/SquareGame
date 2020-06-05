@@ -32,7 +32,7 @@ possible endpoint for testing :
 Restore elm package and launch
 ```
 cd webapp
-elm package install
+elm make src/Game.elm --output elmGame.js
 elm reactor
 ```
 front-end dev server is : 127.0.0.1:8000 then navigate to JsonCall.elm for json tests

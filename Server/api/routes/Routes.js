@@ -12,7 +12,7 @@ module.exports = function(app) {
       );
   app.route('/time')
     .get((req, res)=> {
-      res.json({timestamp : Date.now(), methode : req.method})}
+      res.json({timestamp : (new Date(Date.now())).toLocaleString('fr-FR'), methode : req.method})}
       );
     //.post(gamecontroller.create_a_task);
 
