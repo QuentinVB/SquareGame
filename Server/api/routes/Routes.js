@@ -3,8 +3,17 @@ module.exports = function(app) {
   var gamecontroller = require('../controllers/Controller');
 
   // todoList Routes
-  app.route('/tasks')
+  app.route('/grid')
     .get(gamecontroller.getgrid);
+  
+  app.route('/ping')
+    .get((req, res)=> {
+      res.json({ping : "pong", methode : req.method})}
+      );
+  app.route('/time')
+    .get((req, res)=> {
+      res.json({timestamp : Date.now(), methode : req.method})}
+      );
     //.post(gamecontroller.create_a_task);
 
 /*
