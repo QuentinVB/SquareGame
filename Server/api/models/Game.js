@@ -4,11 +4,16 @@ const DEFAULTGRIDSIZE = 5;
 
 //TODO : a game state with all the stuff !
 
-var Square = require('./Square'); //created model loading here
+var Box = require('./Box'); //created model loading here
 
 class Game {
     constructor(gridSize = DEFAULTGRIDSIZE) {
       this.gridSize = gridSize;
+      this.players = [];
+      this.winner = -1;
+      this.turn = 0;
+      this.grid = [];
+      createNewGrid();
     }
     /*
     player1 id (and score and turn ?)
@@ -21,7 +26,7 @@ class Game {
     */
   
     createNewGrid() {
-      this.grid = Array(this.gridSize).fill(null).map(() => Array(this.gridSize).fill(Square.EmptySquare()));
+      this.grid = Array(this.gridSize).fill(null).map(() => Array(this.gridSize).fill(Box.EmptyBox()));
 
       //TODO : create edges into another array 
 

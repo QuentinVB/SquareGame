@@ -1,7 +1,7 @@
 'use strict';
 
 
-class Square {
+class Box {
     constructor(x,y) {
       this.up = {};
       this.right = {};
@@ -9,8 +9,8 @@ class Square {
       this.left = {};
       this.state = 0; //0 neutral , 1 red, 2 blue
     }
-    static EmptySquare() {
-      return new Square();
+    static EmptyBox() {
+      return new Box();
     }
   }
-module.exports = Square;
+module.exports = Box;
