@@ -4,10 +4,13 @@ var Game = require('../models/Game'); //created model loading here
 //TODO : should be a key/value "dictionnary" with key as GameId and Value as Games
 var activegame;
 
-//a naked game for the tests
 var gametest = new Game (3);
-gametest.createNewGrid();
+//gametest.createNewGrid();
+
+//a naked game for the tests
 exports.getgrid = function(req, res) {
+  var gametest = new Game (3);
+  gametest.createNewGrid();
     res.json({gametest : gametest.getGameState(), methode : req.method});
 
 };
