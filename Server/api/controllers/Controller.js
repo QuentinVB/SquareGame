@@ -1,10 +1,14 @@
 'use strict';
 var Game = require('../models/Game'); //created model loading here
+var Player = require('../models/PLayer'); //created model loading here
 
 //TODO : should be a key/value "dictionnary" with key as GameId and Value as Games
 var activegame;
 
+/*
 var gametest = new Game (3);
+var test = gametest.getGameState();
+*/
 //gametest.createNewGrid();
 
 //a naked game for the tests
@@ -20,16 +24,17 @@ exports.getgrid = function(req, res) {
   create a new game state if not exist, else join an existing one 
   then return the game state. */
 exports.joinNewGame = function(req, res) {
-    let username = req.param.userName;
-
-    let game ;
-    //TODO :retrieve in a game collection, if any game has 1 opponent waiting, else create a new game
-    if(!activegame) activegame=new Game();
-    //TODO : create correctly the game
+    let username = req.params.username;
     
-    game= activegame;
-    game.createNewGrid();
+    console.log(activegame);
 
+    //add security if 2 player already connected
+    let game ;
+    if(!activegame) activegame=new Game();
+
+    game = activegame;
+    game.players.push(new Player(username,0));
+    //set game state : awaiting opponent
 
     res.json({game : game.getGameState(), methode : req.method});
 
@@ -42,7 +47,7 @@ exports.joinNewGame = function(req, res) {
 /*get the current game state, 
 using game id in parameter */
 exports.getgame = function(req, res) {
-  let gameid = req.param.gameid;
+  let gameid = req.params.gameid;
   //TODO : retrieve the game based on his id
 
   if(!activegame) throw 'invalidOperation, no game with this id';
@@ -55,66 +60,17 @@ exports.getgame = function(req, res) {
 /*recieve a clicked edge, 
 using game id, username and edge id in parameter */
 exports.playTurn = function(req, res) {
-  let gameid = req.param.gameid;
-  let userName = req.param.userName;
-  let edgeId = req.param.edgeId;
+  let gameid = req.params.gameid;
+  let userName = req.params.username;
+  let edgeId = parseInt(req.params.edgeid);//parse int
 
-  if(!activegame) throw 'invalidOperation';
-
+  if(!activegame) throw 'invalidOperation : the game is not initialized';
+  if(activegame.gameid != gameid) throw 'invalidOperation : the game id doesent match the current game';
   //TODO : update edge in the game state
+
+  activegame.playTurn(userName, edgeId);
+
 
   res.json({game : activegame.getGameState(), methode : req.method});
 
 };
-
-
-/*
-exports.read_a_task = function(req, res) {
-  Task.findById(req.params.taskId, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.create_a_task = function(req, res) {
-  var new_task = new Task(req.body);
-  new_task.save(function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.read_a_task = function(req, res) {
-  Task.findById(req.params.taskId, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.update_a_task = function(req, res) {
-  Task.findOneAndUpdate({_id: req.params.taskId}, req.body, {new: true}, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.delete_a_task = function(req, res) {
-
-
-  Task.remove({
-    _id: req.params.taskId
-  }, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json({ message: 'Task successfully deleted' });
-  });
-};
-*/

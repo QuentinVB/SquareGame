@@ -20,7 +20,7 @@ module.exports = function(app) {
   passing username in parameter, 
   create a new game state if not exist, else join an existing one 
   then return the game state.*/
-  app.route('/new/:userName')
+  app.route('/new/:username')
     .post(gamecontroller.joinNewGame);
 
   /*get the current game state, 
@@ -30,6 +30,6 @@ module.exports = function(app) {
 
   /*post the clicked edge, 
   passing game id, username and edge id in parameter */
-  app.route('/:gameId/:userName/:edgeId')
+  app.route('/:gameid/:username/:edgeid')
     .post(gamecontroller.playTurn);
 };

@@ -6,5 +6,8 @@ class Player {
       this.username = username;
       this.score = score;
     }
+    static EmptyPlayer() {
+      return new Player();
+    }
   }
 module.exports = Player;
