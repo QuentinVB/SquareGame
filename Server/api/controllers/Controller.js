@@ -1,5 +1,5 @@
 'use strict';
-var Game = require('../models/Model'); //created model loading here
+var Game = require('../models/Game'); //created model loading here
 
 //TODO : should be a key/value "dictionnary" with key as GameId and Value as Games
 var activegame;

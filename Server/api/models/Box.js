@@ -2,8 +2,11 @@
 
 
 class Box {
-    constructor(x,y) {
-      this.up = {};
+    constructor(idx,x,y) {
+      this.idx = idx;
+      this.x=x;
+      this.y=y;
+      this.up = {};//edge
       this.right = {};
       this.bottom = {};
       this.left = {};
