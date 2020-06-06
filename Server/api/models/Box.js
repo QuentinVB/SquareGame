@@ -6,7 +6,7 @@ class Box {
       this.idx = idx;
       this.x=x;
       this.y=y;
-      this.up = {};//edge
+      this.top = {};//edge
       this.right = {};
       this.bottom = {};
       this.left = {};

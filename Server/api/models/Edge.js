@@ -2,7 +2,8 @@
 
 
 class Edge {
-    constructor(state, box1,box2) {
+    constructor(idx,state, box1,box2) {
+      this.idx = idx;
       this.state = state; //0 neutral , 1 red, 2 blue
       this.box1 =  box1;
       this.box2 =  box2;
