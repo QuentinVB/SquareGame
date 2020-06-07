@@ -12,7 +12,8 @@ function GetBox(position,grid,gridsize,idx) //return : box at the position in th
   if(idx<0 || idx > grid.length) throw "index out of range";
   if(gridsize<0) throw "the grid size cant be negative";
   if(gridsize*gridsize == grid.length) throw "the gridsize doesnt match the grid length";
-  //TODO : check position is in "top", "right", "bottom", "left"
+  var possiblePosition = ["top", "right", "bottom", "left"];
+  if(!possiblePosition.includes(position)) throw "the position is not correct, was "+position;
 
   var x = idx % gridsize;
   var y = Math.floor(idx / gridsize);
@@ -269,8 +270,8 @@ class Game {
       if(playerWhoPlays.username != username) throw "not your turn, you cheater !";
 
       //change edge
-      //TODO : cant change an edge already taken !!!!
       var edgetoChange = this.edges[edgeId];
+      if(edgetoChange.state>0) throw "cant change an edge already taken !";
       edgetoChange.state = this.turn+1; //set the state based on the "player id" then offset to match
 
       //check if adjacent box are changed and change them, if any wins, the player can play again

@@ -3,8 +3,6 @@ module.exports = function(app) {
   var gamecontroller = require('../controllers/Controller');
 
 //Routes for testing
-  app.route('/grid')
-    .get(gamecontroller.getgrid);
   app.route('/ping')
     .get((req, res)=> {
       res.json({ping : "pong", methode : req.method})}
@@ -25,7 +23,7 @@ module.exports = function(app) {
 
   /*get the current game state, 
   passing game id in parameter */
-  app.route('/:gameId')
+  app.route('/:gameid')
     .get(gamecontroller.getgame);
 
   /*post the clicked edge, 

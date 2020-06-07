@@ -2,22 +2,7 @@
 var Game = require('../models/Game'); //created model loading here
 var Player = require('../models/PLayer'); //created model loading here
 
-//TODO : should be a key/value "dictionnary" with key as GameId and Value as Games
-var activegame;
-
-/*
-var gametest = new Game (3);
-var test = gametest.getGameState();
-*/
-//gametest.createNewGrid();
-
-//a naked game for the tests
-exports.getgrid = function(req, res) {
-  var gametest = new Game (3);
-  gametest.createNewGrid();
-    res.json({gametest : gametest.getGameState(), methode : req.method});
-
-};
+var games = {};
 
 /*
   using username in parameter, 
@@ -26,15 +11,31 @@ exports.getgrid = function(req, res) {
 exports.joinNewGame = function(req, res) {
     let username = req.params.username;
     
-    console.log(activegame);
+    let game;
 
-    //add security if 2 player already connected
-    let game ;
-    if(!activegame) activegame=new Game();
+    var gamesWithoutOpponnent;
+    for (var g in games) {
+      if(games[g].players.length == 1)
+      {
+        gamesWithoutOpponnent = games[g];
+        break;
+      }
+    }
+    
 
-    game = activegame;
+    if(!gamesWithoutOpponnent) 
+    {
+      game = new Game();
+      console.log("new game created by "+username+" with id "+game.gameid+", awaiting opponnent")
+      games[game.gameid] = game;
+    }
+    else {
+      game = gamesWithoutOpponnent;
+      console.log(username+" joined game "+game.gameid+", may the odd be ever in your favor !")
+    }
+
     game.players.push(new Player(username,0));
-    //set game state : awaiting opponent
+    if(game.players.length>2)throw "the game cant have more than 2 players ! But has "+game.players.length;
 
     res.json({game : game.getGameState(), methode : req.method});
 
@@ -48,10 +49,10 @@ exports.joinNewGame = function(req, res) {
 using game id in parameter */
 exports.getgame = function(req, res) {
   let gameid = req.params.gameid;
-  //TODO : retrieve the game based on his id
+  let game = games[gameid];
+  if(!game) throw 'invalidOperation, no game with this id';
 
-  if(!activegame) throw 'invalidOperation, no game with this id';
-  res.json({game : activegame.getGameState(), methode : req.method});
+  res.json({game : game.getGameState(), methode : req.method});
 };
 
 
@@ -64,13 +65,13 @@ exports.playTurn = function(req, res) {
   let userName = req.params.username;
   let edgeId = parseInt(req.params.edgeid);//parse int
 
-  if(!activegame) throw 'invalidOperation : the game is not initialized';
-  if(activegame.gameid != gameid) throw 'invalidOperation : the game id doesent match the current game';
-  //TODO : update edge in the game state
+  let game = games[gameid];
 
-  activegame.playTurn(userName, edgeId);
+  if(!game) throw 'invalidOperation : the game is not initialized';
+  if(game.gameid != gameid) throw 'invalidOperation : the game id doesent match the current game';
 
+  game.playTurn(userName, edgeId);
 
-  res.json({game : activegame.getGameState(), methode : req.method});
+  res.json({game : game.getGameState(), methode : req.method});
 
 };
