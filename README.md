@@ -16,16 +16,16 @@ npm start
 ```
 backend dev server is : 127.0.0.1:3000
 
-possible endpoint for testing :
+possible endpoint :
 
-- http://127.0.0.1:3000/grid
-(it returns a simple grid)
+- POST : http://127.0.0.1:3000/new/:username
+(return a game state, start a new game or join an already created one)
 
-- http://127.0.0.1:3000/ping
-(it return a simple json object with ping string)
+- GET : http://127.0.0.1:3000/:gameid
+(return a game state of the requested gameid)
 
-- http://127.0.0.1:3000/time
-(it return a simple json object with timestamp)
+- POST : http://127.0.0.1:3000/:gameid/:username/:edgeid
+(return a game state of the requested gameid after changing ownership of the requested edge id to the specified username)
 
 ## elm webapp
 

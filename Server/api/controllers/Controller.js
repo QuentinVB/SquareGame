@@ -1,32 +1,41 @@
 'use strict';
-var Game = require('../models/Model'); //created model loading here
+var Game = require('../models/Game'); //created model loading here
+var Player = require('../models/PLayer'); //created model loading here
 
-//TODO : should be a key/value "dictionnary" with key as GameId and Value as Games
-var activegame;
-
-//a naked game for the tests
-var gametest = new Game (3);
-gametest.createNewGrid();
-exports.getgrid = function(req, res) {
-    res.json({gametest : gametest.getGameState(), methode : req.method});
-
-};
+var games = {};
 
 /*
   using username in parameter, 
   create a new game state if not exist, else join an existing one 
   then return the game state. */
 exports.joinNewGame = function(req, res) {
-    let username = req.param.userName;
-
-    let game ;
-    //TODO :retrieve in a game collection, if any game has 1 opponent waiting, else create a new game
-    if(!activegame) activegame=new Game(3);
-    //TODO : create correctly the game
+    let username = req.params.username;
     
-    game= activegame;
-    game.createNewGrid();
+    let game;
 
+    var gamesWithoutOpponnent;
+    for (var g in games) {
+      if(games[g].players.length == 1)
+      {
+        gamesWithoutOpponnent = games[g];
+        break;
+      }
+    }
+    
+
+    if(!gamesWithoutOpponnent) 
+    {
+      game = new Game();
+      console.log("new game created by "+username+" with id "+game.gameid+", awaiting opponnent")
+      games[game.gameid] = game;
+    }
+    else {
+      game = gamesWithoutOpponnent;
+      console.log(username+" joined game "+game.gameid+", may the odd be ever in your favor !")
+    }
+
+    game.players.push(new Player(username,0));
+    if(game.players.length>2)throw "the game cant have more than 2 players ! But has "+game.players.length;
 
     res.json({game : game.getGameState(), methode : req.method});
 
@@ -39,11 +48,11 @@ exports.joinNewGame = function(req, res) {
 /*get the current game state, 
 using game id in parameter */
 exports.getgame = function(req, res) {
-  let gameid = req.param.gameid;
-  //TODO : retrieve the game based on his id
+  let gameid = req.params.gameid;
+  let game = games[gameid];
+  if(!game) throw 'invalidOperation, no game with this id';
 
-  if(!activegame) throw 'invalidOperation, no game with this id';
-  res.json({game : activegame.getGameState(), methode : req.method});
+  res.json({game : game.getGameState(), methode : req.method});
 };
 
 
@@ -52,66 +61,17 @@ exports.getgame = function(req, res) {
 /*recieve a clicked edge, 
 using game id, username and edge id in parameter */
 exports.playTurn = function(req, res) {
-  let gameid = req.param.gameid;
-  let userName = req.param.userName;
-  let edgeId = req.param.edgeId;
+  let gameid = req.params.gameid;
+  let userName = req.params.username;
+  let edgeId = parseInt(req.params.edgeid);//parse int
 
-  if(!activegame) throw 'invalidOperation';
+  let game = games[gameid];
 
-  //TODO : update edge in the game state
+  if(!game) throw 'invalidOperation : the game is not initialized';
+  if(game.gameid != gameid) throw 'invalidOperation : the game id doesent match the current game';
 
-  res.json({game : activegame.getGameState(), methode : req.method});
+  game.playTurn(userName, edgeId);
+
+  res.json({game : game.getGameState(), methode : req.method});
 
 };
-
-
-/*
-exports.read_a_task = function(req, res) {
-  Task.findById(req.params.taskId, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.create_a_task = function(req, res) {
-  var new_task = new Task(req.body);
-  new_task.save(function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.read_a_task = function(req, res) {
-  Task.findById(req.params.taskId, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.update_a_task = function(req, res) {
-  Task.findOneAndUpdate({_id: req.params.taskId}, req.body, {new: true}, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json(task);
-  });
-};
-
-
-exports.delete_a_task = function(req, res) {
-
-
-  Task.remove({
-    _id: req.params.taskId
-  }, function(err, task) {
-    if (err)
-      res.send(err);
-    res.json({ message: 'Task successfully deleted' });
-  });
-};
-*/
