@@ -2,7 +2,6 @@ module Main exposing (main)
 
 import Browser
 import State exposing (init, update, subscriptions)
-import Types exposing (Model, Msg)
 import View exposing (..)
 
 main =

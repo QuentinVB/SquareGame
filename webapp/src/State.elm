@@ -6,33 +6,27 @@ import Types.Box.Decoder exposing (..)
 import Json.Decode exposing (..)
 import Http
 
+
 init : () -> (Model, Cmd Msg)
 init _ = 
-  ( createModel "-1", Cmd.none )
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Sub.none
-
+  ( initialModel "-1", Cmd.none )
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
 
     NewGame ->
-      ( createModel "-1" , getGrid )
+      ( initialModel "-1" , getModel )
 
     GetBoard result ->
       case result of
-        Ok board ->
-          Debug.log("success")
-          ( updateBoard model board , Cmd.none  )
+        Ok newModel ->
+          ( updateModel newModel , Cmd.none  )
         Err _ ->
-          Debug.log("failed")
           ( addErrorModel model "Can not find board" , Cmd.none )
 
-createModel : String -> Model
-createModel gameID =
+initialModel : String -> Model
+initialModel gameID =
   { gameId = gameID
   , boxes = nullBoxes
   , edges = nullEdges
@@ -40,18 +34,18 @@ createModel gameID =
   , gameState = "-1"
   }
 
-getGrid : Cmd Msg
-getGrid =
+getModel : Cmd Msg
+getModel =
   Http.get
   { url = "http://localhost:3000/new/torung"
-  , expect = Http.expectJson GetBoard gridDecoder }
+  , expect = Http.expectJson GetBoard jsonDecoder }
 
-gridDecoder : Decoder Model
-gridDecoder =
-  ( field "game" getBoardDecoder )
+jsonDecoder : Decoder Model
+jsonDecoder =
+  field "game" modelDecoder
 
-getBoardDecoder : Decoder Model
-getBoardDecoder =
+modelDecoder : Decoder Model
+modelDecoder =
   map5 Model
     (field "gameId" string)
     (field "boxes" boxesDecoder)
@@ -59,27 +53,13 @@ getBoardDecoder =
     (field "error" string)
     (field "gameState" string)
 
-updateBoard : Model -> Model -> Model
-updateBoard model newBoard =
-  Debug.log("grid")
-  { gameId = newBoard.gameId
-  , boxes = newBoard.boxes
-  , edges = newBoard.edges
-  , error = newBoard.error
-  , gameState = newBoard.gameState
-  }
-
-getBoxesDecoder : Decoder Boxes
-getBoxesDecoder =
-  ( field "game" ( field "boxes" boxesDecoder ) )
-
-updateBoxes : Model -> Boxes -> Model
-updateBoxes model newBoxes =
-  { gameId = model.gameId
-  , boxes = newBoxes
-  , edges = model.edges
-  , error = model.error
-  , gameState = model.gameState
+updateModel : Model -> Model
+updateModel newModel =
+  { gameId = newModel.gameId
+  , boxes = newModel.boxes
+  , edges = newModel.edges
+  , error = newModel.error
+  , gameState = newModel.gameState
   }
 
 addErrorModel: Model -> String -> Model
@@ -89,3 +69,9 @@ addErrorModel model err =
   , edges = model.edges
   , error = err
   , gameState = model.gameState}
+
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
