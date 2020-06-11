@@ -1,19 +1,18 @@
-module Grid exposing (main)
+module Grid exposing (..)
 
 import Browser
 import Http
-
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Json.Decode exposing (Decoder, field, string, int)
-import Array exposing (Array)
-import String exposing (String)
-import Json.Encode exposing (int)
+import Json.Decode exposing (..)
 
-import CustomDecoder exposing(..)
+import Types.Box.Types exposing (..)
+import Types.Box.Decoder exposing (..)
+import Types.Game.Types exposing (..)
 
--- MAIN
+
+-- INTERNAL MODULES
 
 main =
   Browser.element
@@ -23,65 +22,131 @@ main =
     , view = view
     }
 
+
 -- MODEL
 
-type Model
-  = Failure String
-  | Loading
-  | Success String
-
--- INIT
+type alias Model =
+  { gameId : String
+  , boxes : Boxes
+  , edges : Edges
+  , error : String
+  , gameState : String
+  }
 
 init : () -> (Model, Cmd Msg)
 init _ = 
-    ( Loading
-    , Http.get
-        { url = "http://localhost:3000/createGrid/5"
-        , expect = Http.expectJson GotJson gameDecoder
-        }
-    )
-
--- UPDATE
-type Msg
-  = GotJson (Result Http.Error String)
-
-update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
-  case msg of
-     GotJson result ->
-      case result of
-          Ok fullText ->
-            Debug.log(Debug.toString fullText)
-            (Success fullText , Cmd.none)
-          Err _ ->
-            Debug.log(Debug.toString result)
-            (Failure "Error during get json", Cmd.none)
-
-
--- SUBSCRIPTIONS
+  ( createModel "-1", Cmd.none )
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
 
+type Msg
+  = GetBoard(Result Http.Error Model)
+  | GetBoxes(Result Http.Error Boxes)
+  | NewGame
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+  case msg of
+
+    NewGame ->
+      ( createModel "-1" , getGrid )
+
+    GetBoxes result ->
+      case result of
+        Ok boxes ->
+          Debug.log("success")
+          ( updateBoxes model boxes , Cmd.none  )
+        Err _ ->
+          Debug.log("failed")
+          ( addErrorModel model "Can not find board" , Cmd.none )
+
+    GetBoard result ->
+      case result of
+        Ok board ->
+          Debug.log("success")
+          ( updateBoard model board , Cmd.none  )
+        Err _ ->
+          Debug.log("failed")
+          ( addErrorModel model "Can not find board" , Cmd.none )
+
+
+createModel : String -> Model
+createModel gameID =
+  { gameId = gameID
+  , boxes = nullBoxes
+  , edges = nullEdges
+  , error = ""
+  , gameState = "-1"
+  }
+
+getGrid : Cmd Msg
+getGrid =
+  Http.get
+  { url = "http://localhost:3000/new/torung"
+  , expect = Http.expectJson GetBoard gridDecoder }
+
+gridDecoder : Decoder Model
+gridDecoder =
+  ( field "game" getBoardDecoder )
+
+getBoardDecoder : Decoder Model
+getBoardDecoder =
+  map5 Model
+    (field "gameId" string)
+    (field "boxes" boxesDecoder)
+    (field "edges" edgesDecoder)
+    (field "error" string)
+    (field "gameState" string)
+
+updateBoard : Model -> Model -> Model
+updateBoard model newBoard =
+  Debug.log("grid")
+  { gameId = newBoard.gameId
+  , boxes = newBoard.boxes
+  , edges = newBoard.edges
+  , error = newBoard.error
+  , gameState = newBoard.gameState
+  }
+
+
+getBoxesDecoder : Decoder Boxes
+getBoxesDecoder =
+  ( field "game" ( field "boxes" boxesDecoder ) )
+
+updateBoxes : Model -> Boxes -> Model
+updateBoxes model newBoxes =
+  { gameId = model.gameId
+  , boxes = newBoxes
+  , edges = model.edges
+  , error = model.error
+  , gameState = model.gameState
+  }
+
 -- VIEW
 
 view : Model -> Html Msg
 view model =
-  case model of
-    Failure errorMessage ->
-      pre [] [ text errorMessage ]
-    
-    Loading ->
-      text "Loading..."
-
-    Success dataText ->
-      pre [] [ text dataText ]
+  div []
+    [ h2 [] [ text "New game" ]
+    , viewTime model
+    ]
 
 
+viewTime : Model -> Html Msg
+viewTime model =
+    div [ ]
+    [ div [class "error"] [text model.error]
+    , div [class "message"] [text ("Game id: " ++ model.gameId)]
+    , button  [ class "button"
+              , onClick NewGame ] [text "New Game" ]
+    ]
 
-jsontestDecoder : Decoder String
-jsontestDecoder =
-  field "methode" string
-
-
+addErrorModel: Model -> String -> Model
+addErrorModel model err = 
+  { gameId = model.gameId
+  , boxes = model.boxes
+  , edges = model.edges
+  , error = err
+  , gameState = model.gameState}
