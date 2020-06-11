@@ -11,7 +11,7 @@ module.exports = function(app) {
     .get((req, res)=> {
       res.json({timestamp : (new Date(Date.now())).toLocaleString('fr-FR'), methode : req.method})}
       );
-  
+      
 //real routes
 
   /*join a new game, 
@@ -19,7 +19,7 @@ module.exports = function(app) {
   create a new game state if not exist, else join an existing one 
   then return the game state.*/
   app.route('/new/:username')
-    .post(gamecontroller.joinNewGame);
+    .get(gamecontroller.joinNewGame);
 
   /*get the current game state, 
   passing game id in parameter */
