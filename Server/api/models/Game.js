@@ -5,19 +5,20 @@ const DEFAULTGRIDSIZE = 3;
 var Box = require('./Box'); //created model loading here
 var Edge = require('./Edge'); //created model loading here
 
-function GetBox(position,grid,gridsize,idx) //return : box at the position in the grid from the box idx
+function GetBox(position,boxes,gridsize,idx) //return : box at the position in the grid from the box idx
 {
 
-  if(grid.length==0) throw "grid is empty";
-  if(idx<0 || idx > grid.length) throw "index out of range";
+  if(boxes.length==0) throw "boxes is empty";
+  if(idx<0 || idx > boxes.length) throw "index out of range";
   if(gridsize<0) throw "the grid size cant be negative";
-  if(gridsize*gridsize == grid.length) throw "the gridsize doesnt match the grid length";
+  if(gridsize*gridsize == boxes.length) throw "the gridsize doesnt match the grid length";
+  
   var possiblePosition = ["top", "right", "bottom", "left"];
   if(!possiblePosition.includes(position)) throw "the position is not correct, was "+position;
 
   var x = idx % gridsize;
   var y = Math.floor(idx / gridsize);
-/*
+  /*
   var top = y * (2 * gridsize + 1) + x;
   var left = top + gridsize;
   var right = left + 1;
@@ -33,22 +34,22 @@ function GetBox(position,grid,gridsize,idx) //return : box at the position in th
   var right = idx+1 ;
   if(x>gridsize) right = undefined;
 
-  var bottom = idx+ gridsize ;
+  var bottom = idx+gridsize ;
   if(bottom>gridsize*gridsize) bottom= undefined;
 
   switch (position) {
-    case "top": return (top===undefined)?undefined:grid[top];
-    case "right": return (right===undefined)?undefined:grid[right];
-    case "bottom": return (bottom===undefined)?undefined:grid[bottom];
-    case "left": return (left===undefined)?undefined:grid[left];
+    case "top": return (top===undefined)?undefined:boxes[top];
+    case "right": return (right===undefined)?undefined:boxes[right];
+    case "bottom": return (bottom===undefined)?undefined:boxes[bottom];
+    case "left": return (left===undefined)?undefined:boxes[left];
     default: return undefined
   }
 }
 
-function computeEdgeIdx(grid,gridsize,idx)//return an object with the theorical edges idx for a given box idx
+function computeEdgeIdx(boxes,gridsize,idx)//return an object with the theorical edges idx for a given box idx
 {
   //if(grid.length==gridsize*gridsize) throw "grid is not complete";
-  if(idx<0 || idx > grid.length) throw "index out of range";
+  if(idx<0 || idx > boxes.length) throw "index out of range";
   if(gridsize<0) throw "the grid size cant be negative";
   //if(gridsize*gridsize != grid.length) throw "the gridsize doesnt match the grid length, should be "+gridsize*gridsize+ " but was " +grid.length;
 
@@ -60,7 +61,7 @@ function computeEdgeIdx(grid,gridsize,idx)//return an object with the theorical 
   var right = left + 1;
   var bottom = top + (2 * gridsize + 1);
 
-  return {idx, top,left,right,bottom}
+  return {idx,top,left,right,bottom};
 }
 /*
 function getEdge(grid,gridsize,idx)//return the edge in the grid that match the idx
@@ -75,13 +76,15 @@ function getEdge(grid,gridsize,idx)//return the edge in the grid that match the 
 
 class Game {
     constructor(gridsize = DEFAULTGRIDSIZE) {
-      this.gameid = Date.now().toString(16); //yes... timestamp as game id in hex, who cares ?
+      this.gameId = Date.now().toString(16); //yes... timestamp as game id in hex, who cares ?
       this.gridsize = gridsize;
       this.players = [];
       this.winner = -1;
       this.turn = 0; //
-      this.grid = [];
+      this.boxes = [];
       this.edges = [];
+      this.error = '';
+      this.gameState = '';
 
       //game state : awaiting opponent / player 1 turn / player 2 turn
 
@@ -114,13 +117,12 @@ class Game {
 
         var x = i % this.gridsize;
         var y = Math.floor(i / this.gridsize);
-
         
         if(x==0 && y==0)
         {
           //first cell
-          var box = new Box(i,x,y);
-          var edgeidx = computeEdgeIdx(this.grid,this.gridsize,i);
+          let box = new Box(i,x,y);
+          let edgeidx = computeEdgeIdx(this.boxes,this.gridsize,i);
 
           box.top = new Edge(edgeidx.top,0,box);
           box.left = new Edge(edgeidx.left,0,box);
@@ -129,13 +131,13 @@ class Game {
 
           this.edges.push(...[box.top,box.left,box.bottom,box.right]);
 
-          this.grid.push(box);
+          this.boxes.push(box);
         }
         else if(y==0) 
         {
           //first row
-          var box = new Box(i,x,y);
-          var edgeidx = computeEdgeIdx(this.grid,this.gridsize,i);
+          let box = new Box(i,x,y);
+          let edgeidx = computeEdgeIdx(this.boxes,this.gridsize,i);
 
           box.top = new Edge(edgeidx.top,0,box);
           box.bottom = new Edge(edgeidx.bottom,0,box);
@@ -144,18 +146,18 @@ class Game {
           this.edges.push(...[box.top,box.bottom,box.right]);
 
 
-          var edgeLeft = GetBox("left",this.grid,this.gridsize,i).right;
+          let edgeLeft = GetBox("left",this.boxes,this.gridsize,i).right;
           if(!edgeLeft) throw "there is no edge here at the left !";
           if(edgeLeft.idx != edgeidx.left) throw "edges id doesnt match !";
           edgeLeft.box2 = box;
           box.left = edgeLeft;
-          this.grid.push(box);
+          this.boxes.push(box);
         }
         else if(x==0)
         {
           //first column
-          var box = new Box(i,x,y);
-          var edgeidx = computeEdgeIdx(this.grid,this.gridsize,i);
+          let box = new Box(i,x,y);
+          let edgeidx = computeEdgeIdx(this.boxes,this.gridsize,i);
 
           box.left = new Edge(edgeidx.left,0,box);
           box.bottom = new Edge(edgeidx.bottom,0,box);
@@ -163,36 +165,36 @@ class Game {
 
           this.edges.push(...[box.left,box.bottom,box.right]);
 
-          var edgeTop = GetBox("top",this.grid,this.gridsize,i).bottom;
+          let edgeTop = GetBox("top",this.boxes,this.gridsize,i).bottom;
           if(!edgeTop) throw "there is no edge here at the top !";
           if(edgeTop.idx != edgeidx.top) throw "edges id doesnt match !";
           edgeTop.box2 = box;
           box.top = edgeTop;
-          this.grid.push(box);
+          this.boxes.push(box);
         }
         else 
         {
           //other cell
-          var box = new Box(i,x,y);
-          var edgeidx = computeEdgeIdx(this.grid,this.gridsize,i);
+          let box = new Box(i,x,y);
+          let edgeidx = computeEdgeIdx(this.boxes,this.gridsize,i);
 
           box.bottom = new Edge(edgeidx.bottom,0,box);
           box.right = new Edge(edgeidx.right,0,box);
           this.edges.push(...[box.bottom,box.right]);
 
-          var edgeTop = GetBox("top",this.grid,this.gridsize,i).bottom;
+          let edgeTop = GetBox("top",this.boxes,this.gridsize,i).bottom;
           if(!edgeTop) throw "there is no edge at the top !";
           if(edgeTop.idx != edgeidx.top) throw "edges id doesnt match !";
           edgeTop.box2 = box;
           box.top = edgeTop;
 
-          var edgeLeft = GetBox("left",this.grid,this.gridsize,i).right;
+          let edgeLeft = GetBox("left",this.boxes,this.gridsize,i).right;
           if(!edgeLeft) throw "there is no edge at the left !";
           if(edgeLeft.idx != edgeidx.left) throw "edges id doesnt match !";
           edgeLeft.box2 = box;
           box.left = edgeLeft;
 
-          this.grid.push(box);
+          this.boxes.push(box);
         }
 
       }
@@ -201,12 +203,12 @@ class Game {
       //cf : https://cs.stackexchange.com/questions/62847/draw-a-5-×-5-grid-graph-how-many-edges-does-the-n-×-n-grid-graph-have
       //a 3*3 edges graphs is a 4*4 nodes graph
       if(this.edges.length!=edgeCount) throw "edge count doesnt matcht, edge array length is "+this.edges.length+" should be "+edgeCount;
-      if(this.grid.length!= (this.gridsize*this.gridsize)) throw "not enough box in the grid ! grid length is "+this.grid.length+" should be "+(this.gridsize*this.gridsize) ;
+      if(this.boxes.length!= (this.gridsize*this.gridsize)) throw "not enough box in the grid ! grid length is "+this.boxes.length+" should be "+(this.gridsize*this.gridsize) ;
 
       //sort edges
       this.edges.sort((a, b) => a.idx - b.idx);
       
-      return this.grid;
+      return this.boxes;
     }
 
     getGameState() {
@@ -219,26 +221,28 @@ class Game {
         player1 = {
           username: this.players[0].username,
           score: this.players[0].score
-        }
+        };
       }
       if(this.players[1])
       {
         player2 = {
           username: this.players[1].username,
           score: this.players[1].score
-        }
+        };
       }
 
       var state = 
        {
-        gameid : this.gameid,
-        player1: player1,
-        player2: player2,
-        winner: this.winner+1,
-        turn: "player"+(this.turn+1),
-        gridsize: this.gridsize,
-        grid:[],
-        edges: []
+        gameId : this.gameId,
+        //player1: player1,
+        //player2: player2,
+        //winner: this.winner+1,
+        //turn: "player"+(this.turn+1),
+        //gridsize: this.gridsize,
+        boxes:[],
+        edges: [],
+        error: '',
+        gameState: ''
       };
 
       for (let i = 0; i < this.edges.length; i++) {
@@ -249,10 +253,10 @@ class Game {
         );
       }
 
-      for (let i = 0; i < this.grid.length; i++) {
-        var edgeidx = computeEdgeIdx(this.grid,this.gridsize,i);
-        state.grid.push({
-            state:this.grid[i].state,
+      for (let i = 0; i < this.boxes.length; i++) {
+        var edgeidx = computeEdgeIdx(this.boxes,this.gridsize,i);
+        state.boxes.push({
+            state:this.boxes[i].state,
             top:edgeidx.top,
             right:edgeidx.right,
             bottom:edgeidx.bottom,
